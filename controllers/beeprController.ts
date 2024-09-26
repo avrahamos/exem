@@ -53,23 +53,38 @@ router.get("/beepers", async (req: Request, res: Response): Promise<void> => {
     console.error(error);
   }
 });
-router.get("/beepers/status/status", async (req: Request, res: Response) => {
-  try {
-    res.json({
-      erorr: false,
-      messege: "TRUE",
-      data: undefined,
-    });
-  } catch (error) {
-    res.status(400).json({
-      error: true,
-      messege: "erororororororoororororororororororoorororororororo",
-      data: null,
-    });
+router.get(
+  "/beepers/status/:status",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const status = req.params.status as BeeperStatus;
 
-    console.error(error);
+      if (!Object.values(BeeperStatus).includes(status)) {
+        res.status(400).json({
+          error: true,
+          message: "Invalid status",
+          data: null,
+        });
+      }
+
+      const beepers = await beeperService.getBeepersByStatus(status);
+
+      res.status(200).json({
+        error: false,
+        message: `Beepers with status ${status} retrieved successfully`,
+        data: beepers,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: true,
+        message: "Server error while retrieving beepers by status",
+        data: null,
+      });
+
+      console.error(error);
+    }
   }
-});
+);
 router.patch(
   "/beepers/:id/status",
   async (req: Request, res: Response): Promise<void> => {
