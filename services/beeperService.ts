@@ -1,4 +1,4 @@
-import { beeper, Beeper } from "../models/bipperModel";
+import { beeper, Beeper, BeeperStatus } from "../models/bipperModel";
 import { BeeperDto } from "../DTO/beeperDto";
 import { getFileData, saveFileData } from "../config/fileDataLayers";
 
@@ -6,8 +6,8 @@ export class beeperService {
   public static async createNewBeeper(
     newBeeperDto: BeeperDto
   ): Promise<boolean> {
-    const { name, status } = newBeeperDto;
-    const newBeeper = new beeper(name, status);
+    const { name } = newBeeperDto;
+    const newBeeper = new beeper(name);
     let beeperes = await getFileData("beeper");
     if (!beeperes) beeperes = [];
     beeperes.push(newBeeper);
@@ -19,34 +19,57 @@ export class beeperService {
     return beeperes;
   }
 
-  public static async getBeeperById(id: number): Promise<beeper | null> {
-    const beepers = await this.getAllBeepers();
-    return beepers.find((b: beeper) => b.id === id) || null;
+  public static async getBeeperById(id: string): Promise<Beeper | null> {
+    let beepers = (await getFileData("beeper")) as beeper[];
+    const beeper = beepers.find((b: Beeper) => b.id == id);
+
+    return beeper || null;
   }
 
-  //   public static async updateBeeperStatus(
-  //     id: number,
-  //     newStatus: string
-  //   ): Promise<boolean> {
-  //     let beepers = await this.getAllBeepers();
-  //     const beeperIndex = beepers.findIndex((b: beeper) => b.id === id);
-  //     if (beeperIndex === -1) return false;
+  public static async getBeepersByStatus(
+    status: BeeperStatus
+  ): Promise<Beeper[]> {
+    let beepers: beeper[] = (await getFileData("beeper")) as beeper[];
+    return beepers.filter((b: Beeper) => b.status === status);
+  }
 
-  //     beepers[beeperIndex].status = newStatus;
-  //     return await saveFileData("beeper", beepers);
-  //   }
+  public static async updateBeeperStatus(
+    id: string,
+    newStatus: BeeperStatus
+  ): Promise<Beeper | null> {
+    let beepers = (await getFileData("beeper")) as beeper[];
+    const beeperIndex = beepers.findIndex((b: Beeper) => b.id === id);
 
-  //   public static async deleteBeeper(id: number): Promise<boolean> {
-  //     let beepers = await this.getAllBeepers();
-  //     const updatedBeepers = beepers.filter((b: beeper) => b.id !== id);
+    if (beeperIndex === -1) {
+      return null;
+    }
 
-  //     if (updatedBeepers.length === beepers.length) return false;
+    beepers[beeperIndex].status = newStatus;
 
-  //     return await saveFileData("beeper", updatedBeepers);
-  //   }
+    if (newStatus === BeeperStatus.Deployed) {
+      setTimeout(async () => {
+        beepers[beeperIndex].status = BeeperStatus.Detonated;
 
-  //   public static async getBeepersByStatus(status: string): Promise<beeper[]> {
-  //     let beepers = await this.getAllBeepers();
-  //     return beepers.filter((b: beeper) => b.status === status);
-  //   }
+        beepers[beeperIndex].detonated_at = new Date();
+
+        await saveFileData("beeper", beepers);
+      }, 10000);
+    }
+
+    await saveFileData("beeper", beepers);
+    return beepers[beeperIndex];
+  }
+
+  public static async deleteBeeper(id: string): Promise<boolean> {
+    let beepers: beeper[] = (await getFileData("beeper")) as beeper[];
+
+    const updatedBeepers: beeper[] = beepers.filter((b: Beeper) => b.id !== id);
+
+    if (updatedBeepers.length === beepers.length) {
+      return false;
+    }
+
+    await saveFileData("beeper", updatedBeepers);
+    return true;
+  }
 }

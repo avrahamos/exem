@@ -1,23 +1,38 @@
+import { v4 } from "uuid";
+
+export enum BeeperStatus {
+  Manufactured = "manufactured",
+  Assembled = "assembled",
+  Shipped = "shipped",
+  Deployed = "deployed",
+  Detonated = "detonated",
+}
+
 export interface Beeper {
-  id: number;
+  id: string;
   name: string;
-  status: string;
+  status: BeeperStatus;
   created_at: Date;
   detonated_at?: Date;
   latitude?: number;
   longitude?: number;
 }
+
 export class beeper {
-  public id: number;
+  public id: string;
+  public status: BeeperStatus;
   public detonated_at?: Date;
   public latitude?: number;
   public longitude?: number;
   public created_at: Date;
-  constructor(public name: string, public status: string) {
-    this.id = randomInt(1, 10000);
+
+  constructor(public name: string) {
+    this.id = v4();
+    this.status = BeeperStatus.Manufactured;
     this.created_at = new Date();
   }
-}
 
-const randomInt = (min: number, max: number) =>
-  Math.floor(Math.random() * (max - min + 1)) + min;
+  public setStatus(newStatus: BeeperStatus): void {
+    this.status = newStatus;
+  }
+}
