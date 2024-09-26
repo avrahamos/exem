@@ -35,7 +35,9 @@ export class beeperService {
 
   public static async updateBeeperStatus(
     id: string,
-    newStatus: BeeperStatus
+    newStatus: BeeperStatus,
+    latitude?: number,
+    longitude?: number
   ): Promise<Beeper | null> {
     let beepers = (await getFileData("beeper")) as beeper[];
     const beeperIndex = beepers.findIndex((b: Beeper) => b.id === id);
@@ -47,19 +49,22 @@ export class beeperService {
     beepers[beeperIndex].status = newStatus;
 
     if (newStatus === BeeperStatus.Deployed) {
+      if (latitude && longitude) {
+        beepers[beeperIndex].latitude = latitude;
+        beepers[beeperIndex].longitude = longitude;
+      }
+
       setTimeout(async () => {
         beepers[beeperIndex].status = BeeperStatus.Detonated;
-
         beepers[beeperIndex].detonated_at = new Date();
-
         await saveFileData("beeper", beepers);
       }, 10000);
+      return beepers[beeperIndex];
     }
 
     await saveFileData("beeper", beepers);
     return beepers[beeperIndex];
   }
-
   public static async deleteBeeper(id: string): Promise<boolean> {
     let beepers: beeper[] = (await getFileData("beeper")) as beeper[];
 

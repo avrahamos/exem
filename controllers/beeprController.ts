@@ -75,24 +75,41 @@ router.patch(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const id: string = req.params.id;
-      const { status } = req.body;
+      const { status, latitude, longitude } = req.body;
 
       if (!Object.values(BeeperStatus).includes(status)) {
-        console.log("1");
         res.status(400).json({
           error: true,
           message: "Invalid status",
           data: null,
         });
       }
-
-      const updatedBeeper = await beeperService.updateBeeperStatus(id, status);
+      const updatedBeeper = await beeperService.updateBeeperStatus(
+        id,
+        status,
+        latitude,
+        longitude
+      );
+      if (status === BeeperStatus.Deployed) {
+        if (
+          latitude < 33.0148 ||
+          latitude > 34.6793 ||
+          longitude < 35.04438 ||
+          longitude > 36.59793
+        ) {
+          res.status(200).json({
+            error: false,
+            message:
+              "Invalid location. Latitude and Longitude must be between 34 and 36",
+            data: updatedBeeper,
+          });
+        }
+      }
 
       if (!updatedBeeper) {
-        console.log("2");
         res.status(404).json({
           error: true,
-          message: "Beeper not found ",
+          message: "Beeper not found or could not be updated",
           data: null,
         });
       }
@@ -102,7 +119,6 @@ router.patch(
         message: "Beeper status updated successfully",
         data: updatedBeeper,
       });
-      console.log("3");
     } catch (error) {
       res.status(500).json({
         error: true,
