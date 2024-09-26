@@ -1,0 +1,12 @@
+{
+  "name": "exem",
+  "version": "1.0.0",
+  "description": "echo '----$ tsc -w'",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon js/index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
