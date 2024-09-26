@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import { BeeperDto } from "../DTO/beeperDto";
 import { beeperService } from "../services/beeperService";
+import { Beeper } from "../models/bipperModel";
 
 const router: Router = express.Router();
 
@@ -96,6 +97,16 @@ router.delete("/beepers/:id", async (req: Request, res: Response) => {
 });
 router.get("/beepers/:id", async (req: Request, res: Response) => {
   try {
+    const id: number = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        error: true,
+        message: "Invalid ID format",
+        data: null,
+      });
+    }
+    await beeperService.getBeeperById(id);
     res.json({
       erorr: false,
       messege: "TRUE",
