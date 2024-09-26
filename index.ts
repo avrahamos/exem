@@ -9,4 +9,3 @@ app.use(express.json());
 app.listen(process.env.PORT, () => {
   console.log(`See you at http::localhost:${process.env.PORT}`);
 });
-console.log(process.env.PORT);
